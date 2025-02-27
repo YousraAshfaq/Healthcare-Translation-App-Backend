@@ -91,7 +91,7 @@ def translate():
         print(f"🔍 Target language: {target_lang}")
 
         # LibreTranslate API request
-        url = "http://localhost:5001/translate"
+        url = "https://libretranslate.de/translate"
         payload = {"q": text, "source": "auto", "target": target_lang, "format": "text"}
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
