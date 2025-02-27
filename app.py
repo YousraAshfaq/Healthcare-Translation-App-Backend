@@ -91,16 +91,11 @@ def translate():
         print(f"🔍 Target language: {target_lang}")
 
         # LibreTranslate API request
-        url = "https://api.mymemory.translated.net/get"
-params = {
-    "q": text,
-    "langpair": f"auto|{target_lang}"
-}
-response = requests.get(url, params=params)
+        url = "https://libretranslate.de/translate"
         payload = {"q": text, "source": "auto", "target": target_lang, "format": "text"}
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
-        response = requests.post(url, data=payload, headers=headers, timeout=10)
+        response = requests.post(url, data=payload, headers=headers, timeout=30)
         result = response.json()
 
         print("🔹 LibreTranslate API Response:", result)
