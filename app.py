@@ -91,23 +91,19 @@ def translate():
         print(f"🔍 Target language: {target_lang}")
 
         # LibreTranslate API request
-        url = "https://api.mymemory.translated.net/get"
-payload = {
-    "q": text,
-    "langpair": f"auto|{target_lang}"
-}
-response = requests.get(url, params=payload, timeout=30)
+        url = "https://libretranslate-railway-production.up.railway.app/translate"
         payload = {"q": text, "source": "auto", "target": target_lang, "format": "text"}
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
         response = requests.post(url, data=payload, headers=headers, timeout=30)
         result = response.json()
-print("🔹 MyMemory API Response:", result)
 
-if "responseData" in result and "translatedText" in result["responseData"]:
-    return jsonify({"translatedText": result["responseData"]["translatedText"]}), 200
-else:
-    return jsonify({"message": "Translation failed", "error": result}), 500
+        print("🔹 LibreTranslate API Response:", result)
+
+        if "translatedText" in result:
+            return jsonify({"translatedText": result["translatedText"]}), 200
+        else:
+            return jsonify({"message": "Translation failed", "error": result}), 500
 
     except Exception as e:
         print("❌ Server Error:", str(e))
