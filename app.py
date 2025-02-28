@@ -70,7 +70,9 @@ def login():
     return jsonify({"message": "Invalid credentials!"}), 401
 
 # Translation using MyMemory API
-@app.route("/translate", methods=["POST"])
+#@app.route("/translate", methods=["POST"])
+@app.route("/translate", methods=["POST", "OPTIONS"])
+@cross_origin(origin="https://healthcare-translation-app.netlify.app", headers=["Content-Type"])
 def translate():
     try:
         data = request.get_json()
