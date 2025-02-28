@@ -70,9 +70,20 @@ def login():
     return jsonify({"message": "Invalid credentials!"}), 401
 
 # Translation using MyMemory API
+@app.before_request
+def handle_options():
+    """Handle preflight requests for CORS"""
+    if request.method == "OPTIONS":
+        response = jsonify({"message": "CORS Preflight OK"})
+        response.headers["Access-Control-Allow-Origin"] = "https://healthcare-translation-app.netlify.app"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        return response, 200
+
+@app.route("/translate", methods=["POST"])
 #@app.route("/translate", methods=["POST"])
-@app.route("/translate", methods=["POST", "OPTIONS"])
-@cross_origin(origin="https://healthcare-translation-app.netlify.app", headers=["Content-Type"])
+
+#@cross_origin(origin="https://healthcare-translation-app.netlify.app", headers=["Content-Type"])
 def translate():
     try:
         data = request.get_json()
