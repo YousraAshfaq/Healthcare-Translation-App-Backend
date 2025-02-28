@@ -8,7 +8,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS for frontend access
 
 # Database Configuration (Uses PostgreSQL on Railway)
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://your_user:your_password@your_host:your_port/your_db")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 def connect_db():
     return psycopg2.connect(DATABASE_URL, sslmode='require')
