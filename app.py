@@ -1,21 +1,28 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import sqlite3
+import os
+import psycopg2
 import requests
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS for frontend access
 
-# Initialize the database
+# Database Configuration (Uses PostgreSQL on Railway)
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://your_user:your_password@your_host:your_port/your_db")
+
+def connect_db():
+    return psycopg2.connect(DATABASE_URL, sslmode='require')
+
+# Initialize the database (Users Table)
 def init_db():
-    conn = sqlite3.connect("users.db")
+    conn = connect_db()
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            email TEXT UNIQUE,
-            password TEXT
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
         )
     ''')
     conn.commit()
@@ -23,92 +30,69 @@ def init_db():
 
 init_db()
 
-# User registration
+# User Registration
 @app.route("/register", methods=["POST"])
 def register():
     data = request.json
-    name = data.get("name")
-    email = data.get("email")
-    password = data.get("password")
+    name, email, password = data.get("name"), data.get("email"), data.get("password")
 
     if not name or not email or not password:
         return jsonify({"message": "All fields are required!"}), 400
 
-    conn = sqlite3.connect("users.db")
-    cursor = conn.cursor()
-
     try:
-        cursor.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", (name, email, password))
+        conn = connect_db()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO users (name, email, password) VALUES (%s, %s, %s)", (name, email, password))
         conn.commit()
         conn.close()
         return jsonify({"message": "Registration successful!"}), 201
-    except sqlite3.IntegrityError:
+    except psycopg2.IntegrityError:
         return jsonify({"message": "Email already exists!"}), 400
 
-# User login
+# User Login
 @app.route("/login", methods=["POST"])
 def login():
     data = request.json
-    email = data.get("email")
-    password = data.get("password")
+    email, password = data.get("email"), data.get("password")
 
-    conn = sqlite3.connect("users.db")
+    conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE email = ? AND password = ?", (email, password))
+    cursor.execute("SELECT * FROM users WHERE email = %s AND password = %s", (email, password))
     user = cursor.fetchone()
     conn.close()
 
     if user:
         return jsonify({"message": "Login successful!"}), 200
-    else:
-        return jsonify({"message": "Invalid credentials!"}), 401
+    return jsonify({"message": "Invalid credentials!"}), 401
 
-# Translation using Local LibreTranslate
+# Translation using MyMemory API
 @app.route("/translate", methods=["POST"])
 def translate():
     try:
-        # Detect if request is JSON or Form data
-        if request.content_type == "application/json":
-            data = request.get_json()
-        else:
-            data = request.form  # Handle form-encoded data
-
-        print("🔍 Raw request data:", data)
-
-        if not data:
-            return jsonify({"message": "Invalid request: No data received"}), 400
-
-        # Support both JSON & Form key names
-        text = data.get("text") or data.get("q")  
-        target_lang = data.get("targetLang") or data.get("target")
+        data = request.get_json()
+        text, target_lang = data.get("text"), data.get("targetLang")
 
         if not text or not target_lang:
             return jsonify({"message": "Invalid request: Missing text or targetLang"}), 400
 
-        target_lang = target_lang.lower()
-
         print(f"🔍 Received text for translation: {text}")
         print(f"🔍 Target language: {target_lang}")
 
-        # LibreTranslate API request
-        url = "https://libretranslate-railway-production.up.railway.app/translate"
-        payload = {"q": text, "source": "auto", "target": target_lang, "format": "text"}
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-
-        response = requests.post(url, data=payload, headers=headers, timeout=30)
+        # MyMemory API request
+        url = f"https://api.mymemory.translated.net/get?q={text}&langpair=en|{target_lang}"
+        response = requests.get(url, timeout=10)
         result = response.json()
 
-        print("🔹 LibreTranslate API Response:", result)
+        translated_text = result.get("responseData", {}).get("translatedText", "")
 
-        if "translatedText" in result:
-            return jsonify({"translatedText": result["translatedText"]}), 200
+        if translated_text:
+            return jsonify({"translatedText": translated_text}), 200
         else:
             return jsonify({"message": "Translation failed", "error": result}), 500
 
     except Exception as e:
         print("❌ Server Error:", str(e))
         return jsonify({"message": f"Error: {str(e)}"}), 500
-
 
 if __name__ == "__main__":
     app.run(debug=True, port=5002)
