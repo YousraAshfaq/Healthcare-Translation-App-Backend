@@ -10,7 +10,6 @@ CORS(app, resources={r"/*": {"origins": "https://healthcare-translation-app.netl
      supports_credentials=True)
 
 
-
 # Database Configuration (Uses PostgreSQL on Railway)
 DATABASE_URL = os.getenv("DATABASE_URL")
 
