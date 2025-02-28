@@ -5,7 +5,9 @@ import psycopg2
 import requests
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS for frontend access
+
+# Allow specific frontend origin
+CORS(app, resources={r"/*": {"origins": ["https://healthcare-translation-app.netlify.app", "*"]}})
 
 # Database Configuration (Uses PostgreSQL on Railway)
 DATABASE_URL = os.getenv("DATABASE_URL")
