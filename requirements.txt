@@ -5,3 +5,4 @@ flask-jwt-extended
 openai
 requests
 gunicorn
+psycopg2-binary
