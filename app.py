@@ -9,6 +9,9 @@ app = Flask(__name__)
 
 CORS(app, resources={r"/*": {"origins": "https://healthcare-translation-app.netlify.app"}},
      supports_credentials=True)
+@app.route("/")
+def home():
+    return jsonify({"message": "Flask API is running"}), 200
 
 
 # Database Configuration (Uses PostgreSQL on Railway)
