@@ -6,8 +6,8 @@ import requests
 
 app = Flask(__name__)
 
-# Allow specific frontend origin
-CORS(app, resources={r"/*": {"origins": ["https://healthcare-translation-app.netlify.app", "*"]}})
+CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins
+
 
 # Database Configuration (Uses PostgreSQL on Railway)
 DATABASE_URL = os.getenv("DATABASE_URL")
