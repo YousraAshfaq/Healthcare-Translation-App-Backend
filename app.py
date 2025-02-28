@@ -6,7 +6,7 @@ import requests
 
 app = Flask(__name__)
 
-CORS(app, resources={r"/*": {"origins": ["https://healthcare-translation-app.netlify.app", "*"]}})
+CORS(app, resources={r"/*": {"origins": "https://healthcare-translation-app.netlify.app"}})
 
 
 # Database Configuration (Uses PostgreSQL on Railway)
